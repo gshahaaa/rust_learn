@@ -241,8 +241,22 @@ fn main(){
 
 String所有权转移
 
+#### 克隆Clone
+使用`clone`拷贝数据
+```rust
+fn main() {
+    let s1 = String::from("hello");
+    let s2 = s1.clone();
+    println!("s1 = {}, s2 = {}", s1, s2);
+}
 
-### Copy语义
+```
+
+#### Copy语义
+Rust 有一个叫做 Copy trait 的特殊注解，可以用在类似整型这样的存储在栈上的类型上。如果一个类型实现了 Copy trait，那么一个旧的变量在将其赋值给其他变量后仍然可用。
+
+Rust 不允许自身或其任何部分实现了 Drop trait(堆类型数据) 的类型使用 Copy trait。如果我们对其值离开作用域时需要特殊处理的类型使用 Copy 注解，将会出现一个编译时错误。
+
 在实现`Copy`后，结构体便具有了复制语义：
 ```rust
 #[derive(Debug,Clone, Copy)]
@@ -282,15 +296,73 @@ impl Clone for Abc {
 }
 ```
 
+* 如果一个类型的所有组件都实现了`Copy`,类型才可以实现`Copy`！
+```rust
+//不可以实现copy，因为vec不是Copy
+struct PointList {
+    points: Vec<Point>,
+}
+```
+* 共享引用 (&T) 也是 Copy，因此，即使类型中包含不是 *Copy 类型的共享引用 T，也可以是 Copy。 考虑下面的结构体，它可以实现 Copy，因为它从上方仅对我们的非 Copy 类型 PointList 持有一个 shared 引用:
+```rust
+#[derive(Copy, Clone)]
+struct PointListWrapper<'a> {
+    point_list_ref: &'a PointList,
+}
+```
+
 **Copy 和 Clone 有什么区别？** 
 
 复制是隐式发生的，例如作为分配 y = x 的一部分。Copy 的行为不可重载; 它始终是简单的按位复制。
 
 克隆是一个明确的动作 x.clone()。Clone 的实现可以提供安全复制值所需的任何特定于类型的行为。 例如，用于 String的 Clone 的实现需要在堆中复制指向字符串的缓冲区。 String 值的简单按位副本将仅复制指针，从而导致该行向下双重释放。 因此，String是 Clone，但不是 Copy。
 
-Clone 是 Copy 的父特征，因此 Copy 的所有类型也必须实现 Clone。 如果类型为 Copy，则其 Clone 实现仅需要返回 *self
+Clone 是 Copy 的父特征，因此 Copy 的所有类型也必须实现 Clone。 如果类型为 Copy，则其 Clone 实现仅需要返回 *self。
 
+**将值传递给函数与给变量赋值的原理相似。向函数传递值可能会移动或者复制，就像赋值语句一样，返回值也可以转移所有权。变量的所有权总是遵循相同的模式：将值赋给另一个变量时移动它。当持有堆中数据值的变量离开作用域时，其值将通过 drop 被清理掉，除非数据被移动为另一个变量所有**
 
+### 引用和借用
+如C++，Rust中引用类似于指针，可以由此访问存储在该地址的其余变量数据，引用能确保引用对象的有效。引用仅仅可以使用值，但是未获取所有权。与引用相反的操作为解引用`*`。创建引用的行为被称为借用。
+引用分为可变引用`&mut T`和不可变引用`&T`两种。
+* 不可变引用也被称为共享引用，所有者可以读取数据但是不能修改数据。
+* 可变引用也被称为独占引用，不能有别名，同一时刻同一个值不能存在别的引用
+
+```rust
+fn main() {
+    let mut s = String::from("hello");
+
+    {
+        let r1 = &mut s;
+    } // r1 在这里离开了作用域，所以我们完全可以创建一个新的引用
+
+    let r2 = &mut s;
+}
+```
+引用的作用域从声明的地方开始一直持续到最后一次使用为止！编译器在作用域结束之前判断不再使用的引用的能力被称为 非词法作用域生命周期（Non-Lexical Lifetimes，简称 NLL）。
+rust编译器会确保在引用之前不会离开作用域。
+
+```rust
+fn dange() -> &String { // dangle 返回一个字符串的引用
+    let s = String::from("hello"); // s 是一个新字符串
+    &s // 返回字符串 s 的引用
+} // 这里 s 离开作用域并被丢弃。其内存被释放。
+  // 危险！
+```
+
+### Slice引用
+字符串slice是string值的部分不可变引用：
+```rust
+let s = String::from("hello world");
+let hello = &s[0..5];
+let err = s[0..5]; // error the size for values of type `str` cannot be known at compilation time the trait `Sized` is not implemented for `str` all local variables must have a statically known size unsized locals are gated as an unstable feature
+```
+
+字符串字面值就是slice：
+```rust
+let s = "123"; // s类
+```
+
+数组的通用slice类型。
 
 ## 泛型、Trait和生命周期
 ### Trait

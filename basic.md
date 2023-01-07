@@ -364,5 +364,81 @@ let s = "123"; // s类
 
 数组的通用slice类型。
 
+## 结构体
+对于结构体初始化而言，若参数名和字段名相同，则可以使用字段初始化简写语法。
+```rust
+return User {
+    email,
+    username,
+}
+```
+
+**结构体更新语法** 
+```rust
+let user2 = User{
+email:String::from("12")
+..user1 // 只使用部分值
+}
+```
+该语法类似于带有`=`的赋值语句，user1不在能够被使用
+
+**元组结构体** 
+仅仅有字段的类型，但是没有具体的字段名，类似于元组，可以解构成单独的部分，也可以使用.后跟索引来访问单独的值。
+
+```rust
+struct User(i32,i32);
+
+fn main() {
+    let point = User(0,0);
+    let User(a,b)= point; //解构
+    let z = point.0; 、、索引
+}
+```
+
+### 方法
+在结构体上下文、枚举或Trait对象中被定义的函数，第一个参数总是self。
+```rust
+impl Rectangle {
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+
+    fn can_hold(&self, other: &Rectangle) -> bool {
+        self.width > other.width && self.height > other.height
+    }
+}
+```
+
+### 关联函数
+所有在`impl`快中定义的函数被称为关联函数，且可以不以self为第一参数。
+```rust
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    fn square(size: u32) -> Self { //关键字 Self 在函数的返回类型中代指在 impl 关键字后出现的类型
+        Self {
+            width: size,
+            height: size,
+        }
+    }
+}
+
+fn main() {
+    let sq = Rectangle::square(3); //使用结构体名和 :: 语法来调用这个关联函数：比如 let sq = Rectangle::square(3);。这个函数位于结构体的命名空间中：:: 语法用于关联函数和模块创建的命名空间
+}
+
+```
+
+**类单元结构体** 
+为一个没有任何字段的结构体，类似于单元元组`()`。类单元结构体常常在你想要在某个类型上实现 trait 但不需要在类型中存储数据的时候发挥作用。
+```rust
+struct AlwaysEqual;
+let m = AlwaysEqual;
+```
+
 ## 泛型、Trait和生命周期
 ### Trait

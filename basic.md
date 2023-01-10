@@ -440,5 +440,92 @@ struct AlwaysEqual;
 let m = AlwaysEqual;
 ```
 
+## 枚举和模式匹配
+```rust
+enum IpAddr{
+    IPV4,
+    IPV6,
+}
+//关联数据
+enum IpAddr{
+    IPV4(String),
+    IPV6(String),
+}
+
+let home = IpAddr::V4(String::from("127.0.0.1"));
+```
+每个枚举类型可以处理不同类型和不同数量的数据
+```rust
+enum IPAddr{
+    IPV4(i32,i32,i32,i32),
+    IPV6(String),
+}
+ let home = IpAddr::V4(127, 0, 0, 1);
+
+
+ enum Message {
+    Quit,
+    Move { x: i32, y: i32 }, //具有命名字段
+    Write(String),
+    ChangeColor(i32, i32, i32),
+}
+```
+
+**枚举方法** 
+```rust
+impl Message{
+    fn call(&self){
+
+    }
+}
+```
+
+### Option枚举
+编码存在或者不存在概念的枚举类型，定义于标准库中，定义如下：
+```rust
+pub enum Option<T>{
+    None,
+    Some(T),
+}
+```
+
+在对 Option<T> 进行 T 的运算之前必须将其转换为 T。通常这能帮助我们捕获到空值最常见的问题之一：假设某值不为空但实际上为空的情况.
+
+### match
+```rust
+enum Coin {
+    Penny,
+    Nickel,
+    Dime,
+    Quarter,
+}
+
+fn value_in_cents(coin: Coin) -> u8 {
+    match coin {
+        Coin::Penny => 1,
+        Coin::Nickel => 5,
+        Coin::Dime => 10,
+        Coin::Quarter => 25,
+    }
+}
+
+ let dice_roll = 9;
+    match dice_roll {
+        3 => add_fancy_hat(),
+        7 => remove_fancy_hat(),
+        _ => (),  //通配符不匹配
+    }
+```
+
+### if let
+```rust
+fn main() {
+    let config_max = Some(3u8);
+    if let Some(max) = config_max {
+        println!("The maximum is configured to be {}", max);
+    }
+}
+
+```
 ## 泛型、Trait和生命周期
 ### Trait
